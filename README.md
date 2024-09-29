@@ -1,11 +1,11 @@
 SIMULATION AND IMPLEMENTATION OF LOGIC GATES
-AIM:
+## AIM: ##
 To design and simulate a 4:1 Multiplexer (MUX) using Verilog HDL in four different modeling styles—Gate-Level, Data Flow, Behavioral, and Structural—and to verify its functionality through a testbench using the Vivado 2023.1 simulation environment. The experiment aims to understand how different abstraction levels in Verilog can be used to describe the same digital logic circuit and analyze their performance.
 
-APPARATUS REQUIRED:
+## APPARATUS REQUIRED: ##
 Vivado 2023.1
 
-Procedure
+## Procedure ##
 1. Launch Vivado
 Open Vivado 2023.1 by double-clicking the Vivado icon or searching for it in the Start menu.
 2. Create a New Project
@@ -51,120 +51,106 @@ You can include the timing diagram from the simulation window showing the correc
 10. Close the Simulation
 Once done, close the simulation by going to Simulation → "Close Simulation".
 
-Logic Diagram
+## Logic Diagram ##
 
 ![image](https://github.com/user-attachments/assets/d4ab4bc3-12b0-44dc-8edb-9d586d8ba856)
 
-Truth Table
+## Truth Table ##
 
 ![image](https://github.com/user-attachments/assets/c850506c-3f6e-4d6b-8574-939a914b2a5f)
 
-Verilog Code
+## Verilog Code ##
 
-4:1 MUX Gate-Level Implementation
+ ## 4:1 MUX Gate-Level Implementation ##
+ 
+ module multiplexer(s1,s0,a,b,c,d,y);
+ 
+input s1,s0,a,b,c,d;
 
-// mux4_to_1_gate.v
-module mux4_to_1_gate (
-    input wire A,
-    input wire B,
-    input wire C,
-    input wire D,
-    input wire S0,
-    input wire S1,
-    output wire Y
-);
-    wire not_S0, not_S1;
-    wire A_and, B_and, C_and, D_and;
+output y;
 
-    // Inverters for select lines
-    not (not_S0, S0);
-    not (not_S1, S1);
+wire[3:0]w;
 
-    // AND gates for each input with select lines
-    and (A_and, A, not_S1, not_S0);
-    and (B_and, B, not_S1, S0);
-    and (C_and, C, S1, not_S0);
-    and (D_and, D, S1, S0);
+and g1(w[0],~s1,~s0,a);
 
-    // OR gate to combine all AND gate outputs
-    or (Y, A_and, B_and, C_and, D_and);
+and g2(w[1],~s1,s0,b);
+
+and g3(w[2],s1,~s0,c);
+
+and g4(w[3],s1,s0,d);
+
+or g5(y,w[0],w[1],w[2],w[3]);
+
 endmodule
 
-4:1 MUX Data Flow Implementation
+ ## output ##
+ ![image](https://github.com/user-attachments/assets/d8d01408-2d41-4b7c-83f0-5d3627df65ca)
 
-// mux4_to_1_dataflow.v
-module mux4_to_1_dataflow (
-    input wire A,
-    input wire B,
-    input wire C,
-    input wire D,
-    input wire S0,
-    input wire S1,
-    output wire Y
-);
-    assign Y = (~S1 & ~S0 & A) |
-               (~S1 & S0 & B) |
-               (S1 & ~S0 & C) |
-               (S1 & S0 & D);
+## 4:1 MUX Data Flow Implementation ##
+
+module mul_data( Y,I0,I1,I2,I3,S0,S1);
+
+output Y;      
+
+input I0, I1, I2, I3;
+
+input S0, S1;     
+
+assign Y = (~S1 & ~S0 & I0)|  
+          (~S1 & S0 & I1) | 
+           (S1 & ~S0 & I2) |
+           (S1 & S0 & I3) |
+           
+   endmodule
+
+## output ##
+![image](https://github.com/user-attachments/assets/1e221ec4-b0be-4c72-9f79-42d143a147d3)
+
+
+ ## 4:1 MUX Behavioral Implementation ##
+
+module mux(s, i, y);
+input [1:0] s;
+input [3:0] i;
+output reg y;  
+always @(s or i)  
+begin
+ case (s)
+  2'b00: y = i[0];  
+  2'b01: y = i[1];   
+  2'b10: y = i[2];
+  2'b11: y = i[3];  
+ default: y = 1'b0;
+ 
+endcase
+
+end
+
 endmodule
+## output ##
+![image](https://github.com/user-attachments/assets/a5ba5fdb-2066-4144-b75e-7f786cf45c30)
 
-4:1 MUX Behavioral Implementation
 
-// mux4_to_1_behavioral.v
-module mux4_to_1_behavioral (
-    input wire A,
-    input wire B,
-    input wire C,
-    input wire D,
-    input wire S0,
-    input wire S1,
-    output reg Y
-);
-    always @(*) begin
-        case ({S1, S0})
-            2'b00: Y = A;
-            2'b01: Y = B;
-            2'b10: Y = C;
-            2'b11: Y = D;
-            default: Y = 1'bx; // Undefined
-        endcase
-    end
+## 4:1 MUX Structural Implementation 
+
+module mux_4to1 (a,b,c,d,S0,S1,Y);
+
+input a,b,c,d;
+
+input  S0, S1;  
+
+output  Y ;    
+
+assign Y = (S1 == 0 && S0 == 0) ? a :
+ (S1 == 0 && S0 == 1) ? b :
+(S1 == 1 && S0 == 0) ? c :
+(S1 == 1 && S0 == 1) ? d:
+
 endmodule
+## output 
+![image](https://github.com/user-attachments/assets/b2829992-1bb2-4338-9d22-695b5b153133)
 
-4:1 MUX Structural Implementation
-
-// mux2_to_1.v
-module mux2_to_1 (
-    input wire A,
-    input wire B,
-    input wire S,
-    output wire Y
-);
-    assign Y = S ? B : A;
-endmodule
-
-
-// mux4_to_1_structural.v
-module mux4_to_1_structural (
-    input wire A,
-    input wire B,
-    input wire C,
-    input wire D,
-    input wire S0,
-    input wire S1,
-    output wire Y
-);
-    wire mux_low, mux_high;
-
-    // Instantiate two 2:1 MUXes
-    mux2_to_1 mux0 (.A(A), .B(B), .S(S0), .Y(mux_low));
-    mux2_to_1 mux1 (.A(C), .B(D), .S(S0), .Y(mux_high));
-
-    // Instantiate the final 2:1 MUX
-    mux2_to_1 mux_final (.A(mux_low), .B(mux_high), .S(S1), .Y(Y));
-endmodule
-
-Testbench Implementation
+ ## Testbench Implementation 
 
 // mux4_to_1_tb.v
 `timescale 1ns / 1ps
